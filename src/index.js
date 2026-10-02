@@ -1,5 +1,5 @@
 import { PROVIDERS, MAX_BULLETS, MAX_CV_CHARS, MAX_TARGETS } from '../public/config.js';
-import { BULLET_QUESTIONS, matchQuestion } from './rubric.js';
+import { BULLET_QUESTIONS, matchQuestion, SEMANTIC_QUESTIONS } from './rubric.js';
 import { startsWithActionVerb, weakOpener } from '../public/rules.js';
 
 const MAX_CONCURRENCY = 6;
@@ -21,6 +21,22 @@ function pickProvider(env) {
   return null;
 }
 
+function validateAnswers(data, questions) {
+  if (!data || typeof data !== 'object' || !data.answers || typeof data.answers !== 'object') {
+    throw new Error('Jev returned an invalid answer object');
+  }
+  const out = {};
+  for (const name of Object.keys(questions)) {
+    const answer = data.answers[name];
+    const value = answer && answer.noul;
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 1) {
+      throw new Error(`Jev returned an invalid score for ${name}`);
+    }
+    out[name] = value;
+  }
+  return out;
+}
+
 async function jev(env, state, questions) {
   const provider = pickProvider(env);
   const cacheKey = `https://cvscorer-cache/${provider.model}/${hashText(`${state}\n${JSON.stringify(questions)}`)}`;
@@ -31,20 +47,33 @@ async function jev(env, state, questions) {
   } else if (memoryCache.has(cacheKey)) {
     return memoryCache.get(cacheKey);
   }
-  const res = await fetch(provider.url, {
-    method: 'POST',
-    headers: { Authorization: 'Bearer ' + provider.key, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ state, model: provider.model, questions }),
-    signal: AbortSignal.timeout(60_000),
-    redirect: 'manual',
-  });
-  if (!res.ok) {
-    const detail = (await res.text().catch(() => '')).replace(/\s+/g, ' ').slice(0, 120);
-    throw new Error('Jev returned ' + res.status + ' from ' + new URL(provider.url).host + (detail ? ': ' + detail : ''));
+  let out;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const res = await fetch(provider.url, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + provider.key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ state, model: provider.model, questions }),
+      signal: AbortSignal.timeout(60_000),
+      redirect: 'manual',
+    });
+    if (!res.ok) {
+      const detail = (await res.text().catch(() => '')).replace(/\s+/g, ' ').slice(0, 120);
+      throw new Error('Jev returned ' + res.status + ' from ' + new URL(provider.url).host + (detail ? ': ' + detail : ''));
+    }
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      if (attempt === 0) continue;
+      throw new Error('Jev returned invalid JSON');
+    }
+    try {
+      out = validateAnswers(data, questions);
+      break;
+    } catch (error) {
+      if (attempt === 1) throw error;
+    }
   }
-  const data = await res.json();
-  const out = {};
-  for (const [name, answer] of Object.entries(data.answers)) out[name] = answer.noul;
   if (cache) {
     await cache.put(cacheKey, json(out, 200));
   } else {
@@ -113,6 +142,37 @@ async function matchSkills(env, body) {
   };
 }
 
+async function semanticScore(env, body) {
+  const bullets = [...new Set((Array.isArray(body.bullets) ? body.bullets : [])
+    .filter((value) => typeof value === 'string' && value.trim())
+    .slice(0, 8)
+    .map((value) => value.trim().slice(0, 600)))];
+  if (!bullets.length) return { results: [] };
+  const target = typeof body.target === 'string' ? body.target.trim().slice(0, 120) : '';
+  const questions = {};
+  bullets.forEach((bullet, index) => {
+    for (const [kind, question] of Object.entries(SEMANTIC_QUESTIONS)) {
+      const key = `b${index}_${kind}`;
+      questions[key] = {
+        ...question,
+        instructions: kind === 'relevance' && target
+          ? `${question.instructions} The target role is ${target}.`
+          : question.instructions,
+      };
+    }
+  });
+  const answers = await jev(env, bullets.join('\n'), questions);
+  return {
+    results: bullets.map((bullet, index) => ({
+      bullet,
+      result: answers[`b${index}_result`],
+      relevance: answers[`b${index}_relevance`],
+      skillEvidence: answers[`b${index}_skillEvidence`],
+      credibility: answers[`b${index}_credibility`],
+    })),
+  };
+}
+
 async function rewriteBullet(env, body) {
   if (env.REWRITE_SUGGESTIONS_ENABLED !== 'true') return { error: 'Rewrite suggestions are disabled.' };
   if (!env.OPENROUTER_API_KEY) return { error: 'Set OPENROUTER_API_KEY to enable rewrite suggestions.' };
@@ -148,7 +208,7 @@ function allowed(request) {
 export default {
   async fetch(request, env) {
     const { pathname } = new URL(request.url);
-    const routes = { '/api/bullets': scoreBullets, '/api/match': matchSkills, '/api/rewrite': rewriteBullet };
+    const routes = { '/api/bullets': scoreBullets, '/api/match': matchSkills, '/api/semantic': semanticScore, '/api/rewrite': rewriteBullet };
     const handler = routes[pathname];
     if (!handler) return new Response('Not found', { status: 404 });
     if (request.method !== 'POST') return json({ error: 'Use POST' }, 405);

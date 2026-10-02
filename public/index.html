@@ -55,6 +55,7 @@
       <textarea id="job-description" class="short-textarea" placeholder="Paste requirements, must-have skills, and qualifications here…"></textarea>
       <div class="actions">
         <button id="score" class="primary-button" type="button">Score CV</button>
+        <button id="semantic-score" class="quiet-button" type="button">Run optional semantic review</button>
         <button id="export-json" class="quiet-button" type="button">Export JSON</button>
         <button id="print-report" class="quiet-button" type="button">Print report</button>
         <span id="progress" class="muted" role="status"></span>
@@ -102,6 +103,12 @@
       <section class="dashboard-card" aria-labelledby="quality-title">
         <p class="eyebrow">QUALITY</p><h2 id="quality-title">Writing checks</h2>
         <div id="quality-checks"></div>
+      </section>
+      <section class="dashboard-card" aria-labelledby="score-detail-title">
+        <p class="eyebrow">TRANSPARENCY</p><h2 id="score-detail-title">Score detail</h2>
+        <div id="score-summary"></div>
+        <div id="score-rules"></div>
+        <div id="semantic-results"></div>
       </section>
     </section>
     <p class="honest-note"><strong>What this measures:</strong> a transparent checklist of action verbs, numbers, outcomes, skills and header details. <strong>What it does not measure:</strong> ATS ranking, hiring probability, or the quality of a person.</p>

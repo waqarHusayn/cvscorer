@@ -1,4 +1,4 @@
-import { bulletsFromCV, checkHeader, combineChecklistScore, extractRequirements, hasMetric, hasSkillWord, hasSoftSkill, outcomePhrase, parseCV, qualityChecks, skillEvaluation, startsWithActionVerb, weakOpener } from './rules.js';
+import { bulletsFromCV, checkHeader, extractRequirements, hasMetric, hasSkillWord, hasSoftSkill, outcomePhrase, parseCV, qualityChecks, scoreRecruiter, skillEvaluation, spansFor, startsWithActionVerb, weakOpener } from './rules.js';
 import { getDocument, GlobalWorkerOptions } from './vendor/pdf.min.mjs';
 import { pagesToText } from './pdf.js';
 
@@ -40,16 +40,15 @@ function barChart(target, labels, values, max = 1) {
     }).join('') + '</svg>';
 }
 
-function renderCharts(results, parsed, matchResults = []) {
+function renderCharts(results, parsed, recruiterScore) {
   const scores = results.map(numberScore).filter((value) => value !== null);
-  const bulletAverage = scores.length ? scores.reduce((sum, value) => sum + value, 0) / scores.length : null;
-  const average = combineChecklistScore(bulletAverage, matchResults.map((item) => item.score));
   const categoryValues = [
-    results.length ? results.reduce((sum, result) => sum + Number(startsWithActionVerb(result.bullet) || false), 0) / results.length : 0,
-    results.length ? results.reduce((sum, result) => sum + Number(hasMetric(result.bullet) || false), 0) / results.length : 0,
-    bulletAverage || 0, skillEvaluation(cv.value).repeatedInExperience.length ? 1 : 0, Object.values(checkHeader(cv.value)).filter(Boolean).length / 5,
+    ...(recruiterScore ? ['roleMatch', 'experienceImpact', 'parseability', 'structure', 'skills', 'education', 'language'].map((name) => {
+      const item = recruiterScore.categories.find((category) => category.name === name);
+      return item ? item.points / item.possible : 0;
+    }) : [0, 0, 0, 0, 0, 0, 0]),
   ];
-  barChart($('#category-chart'), ['Action verbs', 'Numbers', 'Outcomes', 'Skills', 'Header'], categoryValues);
+  barChart($('#category-chart'), ['Role match', 'Experience', 'Parseability', 'Structure', 'Skills', 'Education', 'Language'], categoryValues);
   const sectionNames = ['experience', 'projects', 'education', 'skills'];
   const sectionValues = sectionNames.map((name) => {
     const section = parsed.sections.find((item) => item.name === name);
@@ -57,7 +56,7 @@ function renderCharts(results, parsed, matchResults = []) {
   });
   barChart($('#section-chart'), sectionNames, sectionValues);
   $('#bullet-chart').innerHTML = scores.length ? scores.map((score, index) => `<div class="bullet-bar" style="height:${Math.max(8, score * 110)}px" title="Bullet ${index + 1}: ${Math.round(score * 100)}%"><span>${Math.round(score * 100)}</span></div>`).join('') : '<span class="muted">No model scores returned.</span>';
-  return average;
+  return recruiterScore?.score ?? null;
 }
 
 function annotate(text) {
@@ -96,6 +95,40 @@ function renderQuality(text) {
     `<p><strong>Tense:</strong> ${checks.tense.currentRolePresent ? 'current role detected; review present tense' : 'review past tense for older roles'}</p>`;
 }
 
+function renderScoreDetails(score) {
+  if (!score) return;
+  const categoryRows = score.categories.map((item) =>
+    `<div class="score-row"><span>${escapeHtml(item.name)}</span><strong>${item.points.toFixed(1)} / ${item.possible}</strong></div>`).join('');
+  const penalties = score.penalties?.length
+    ? score.penalties.map((item) => `<div class="rule-row"><strong>${escapeHtml(item.id)}</strong><span class="rule-status fail">${item.points} points</span><p>${escapeHtml(item.reason)}</p></div>`).join('')
+    : '<p class="muted">No deterministic penalties detected.</p>';
+  const rules = score.categories.flatMap((item) => item.rules).filter((item) => item.status !== 'pass')
+    .sort((left, right) => (right.possible - right.points) - (left.possible - left.points)).slice(0, 5)
+    .map((item) => `<div class="rule-row"><strong>${escapeHtml(item.id)}</strong> <span class="rule-status ${escapeHtml(item.status)}">${escapeHtml(item.status)}</span><p>${escapeHtml(item.reason)}</p></div>`).join('');
+  $('#score-summary').innerHTML = `<p><strong>Confidence:</strong> ${escapeHtml(score.confidence)}. <strong>Model:</strong> ${escapeHtml(score.rules_version)}.</p>` +
+    `<p>${score.missingMustHave?.length ? `<strong>Missing must-have:</strong> ${escapeHtml(score.missingMustHave.join(', '))}.` : 'No missing must-have skills detected.'}</p>` +
+    `<p>${score.unsupportedSkills?.length ? `<strong>Unsupported listed skills:</strong> ${escapeHtml(score.unsupportedSkills.join(', '))}.` : 'All listed skills have supporting experience or project evidence.'}</p>` +
+    `<div class="score-summary">${categoryRows}</div><h3>Penalties</h3>${penalties}<h3>Largest rule-level losses</h3>${rules || '<p class="muted">No rule losses detected.</p>'}`;
+}
+
+function renderSemantic(results) {
+  const target = $('#semantic-results');
+  if (!results?.length) {
+    target.innerHTML = '';
+    return;
+  }
+
+  const semanticCacheKey = (text, job) => `cvscorer:semantic:v1:${hashText(`${text}\n${job}`)}`;
+  const readSemanticCache = (text, job) => {
+    try { return JSON.parse(localStorage.getItem(semanticCacheKey(text, job))); } catch { return null; }
+  };
+  const writeSemanticCache = (text, job, result) => {
+    try { localStorage.setItem(semanticCacheKey(text, job), JSON.stringify(result)); } catch { /* storage is optional */ }
+  };
+  target.innerHTML = '<h3>Optional semantic review</h3>' + results.map((item) =>
+    `<div class="semantic-result"><strong>${escapeHtml(item.bullet)}</strong><p>Result: ${item.result.toFixed(2)} · Relevance: ${item.relevance.toFixed(2)} · Skill evidence: ${item.skillEvidence.toFixed(2)} · Credibility: ${item.credibility.toFixed(2)}</p></div>`).join('');
+}
+
 function renderMatch(results) {
   const match = $('#match-chart');
   if (!results?.length) { match.className = 'chart empty-chart'; match.textContent = 'No requirements found.'; return; }
@@ -103,20 +136,21 @@ function renderMatch(results) {
   match.innerHTML = results.map((item) => `<p><strong>${escapeHtml(item.target)}</strong>: <span class="tag ${item.status === 'matched' ? 'outcome' : item.status === 'weak' ? 'soft' : 'verb'}">${escapeHtml(item.status)}</span></p>`).join('');
 }
 
-function renderReport(text, bullets, results, matchResults) {
+function renderReport(text, bullets, results, matchResults, recruiterScore) {
   const parsed = parseCV(text);
-  const average = renderCharts(results, parsed, matchResults);
-  setGauge(average);
-  $('#verdict').textContent = average === null
+  const score = renderCharts(results, parsed, recruiterScore);
+  setGauge(score === null ? null : score / 100);
+  $('#verdict').textContent = score === null
     ? 'No model scores returned; local checks are still shown below.'
-    : matchResults.length
-      ? `Job-aware checklist score: ${Math.round(average * 100)}% (70% bullet quality, 30% job match).`
-      : average >= .7
-        ? 'Strong checklist coverage; add a job description for a tailored score.'
+    : recruiterScore?.missingMustHave?.length
+      ? `${recruiterScore.missingMustHave.length} required skill${recruiterScore.missingMustHave.length === 1 ? '' : 's'} missing; the score is capped until addressed.`
+      : score >= 70
+        ? 'Strong recruiter-style checklist coverage; review the top point losses below.'
         : 'Several checklist items need evidence or clearer outcomes.';
   renderAnnotated(parsed);
   renderQuality(text);
   renderMatch(matchResults);
+  renderScoreDetails(recruiterScore);
   $('#report').hidden = false;
 }
 
@@ -131,6 +165,42 @@ $('#export-json').addEventListener('click', () => {
   URL.revokeObjectURL(link.href);
 });
 $('#print-report').addEventListener('click', () => window.print());
+$('#semantic-score').addEventListener('click', async () => {
+  const text = cv.value.trim();
+  const bullets = bulletsFromCV(text);
+  if (!bullets.length) {
+    $('#progress').textContent = 'Score the CV first or add experience/project bullets before running semantic review.';
+    return;
+  }
+  try {
+    const job = $('#job-description').value;
+    const cached = readSemanticCache(text, job);
+    let semanticResults = cached;
+    if (!semanticResults) {
+      $('#progress').textContent = 'Running optional semantic review…';
+      semanticResults = [];
+      for (let index = 0; index < bullets.length; index += 8) {
+        const response = await fetch('/api/semantic', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ bullets: bullets.slice(index, index + 8), target: extractRequirements(job)[0] || '' }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Semantic review failed');
+        semanticResults.push(...(data.results || []));
+      }
+      writeSemanticCache(text, job, semanticResults);
+    }
+    renderSemantic(semanticResults);
+    if (latestReport) {
+      latestReport.semantic = semanticResults;
+      renderSemantic(semanticResults);
+    }
+    $('#progress').textContent = 'Semantic review complete. It supplements, but does not replace, deterministic scoring.';
+  } catch (error) {
+    $('#progress').textContent = `Semantic review unavailable: ${error.message}`;
+  }
+});
 
 $('#theme').addEventListener('click', () => {
   document.body.classList.toggle('dark');
@@ -213,14 +283,14 @@ $('#score').addEventListener('click', async () => {
       if (!matchResponse.ok) throw new Error(matchData.error || 'Job match request failed');
       matchResults = matchData.results || [];
     }
-    const bulletScore = results.map(numberScore).filter((score) => score !== null);
-    const bulletAverage = bulletScore.length ? bulletScore.reduce((sum, score) => sum + score, 0) / bulletScore.length : null;
+    const recruiterScore = scoreRecruiter(text, $('#job-description').value);
     latestReport = {
       cv: text, bullets, results, requirements, matchResults,
-      overallScore: combineChecklistScore(bulletAverage, matchResults.map((item) => item.score)),
+      recruiterScore,
+      overallScore: recruiterScore.score,
       quality: qualityChecks(text), generatedAt: new Date().toISOString(),
     };
-    renderReport(text, bullets, results, matchResults);
+    renderReport(text, bullets, results, matchResults, recruiterScore);
   } catch (error) {
     if (error.name !== 'AbortError') $('#progress').textContent = `Error: ${error.message}`;
   }

@@ -1,0 +1,92 @@
+[
+  {
+    "id": "placeholder-01",
+    "placeholder": true,
+    "cv": "Candidate [name]\n[email] | [phone]\nEXPERIENCE\nPlatform Engineer | [dates]\n- Built Python services that reduced processing time by 40%.\n- Led Docker deployments for three teams.\nSKILLS\nPython, Docker\nEDUCATION\n[degree], [institution], [dates]",
+    "job_description": "Required:\n- Python\n- Docker",
+    "rater1": 82,
+    "rater2": 78,
+    "shortlist": true
+  },
+  {
+    "id": "placeholder-02",
+    "placeholder": true,
+    "cv": "Candidate [name]\n[email]\nEXPERIENCE\nAnalyst | [dates]\n- Worked on reports.\n- Helped with various tasks.\nSKILLS\nExcel\nEDUCATION\n[degree]",
+    "job_description": "Required:\n- SQL\nPreferred:\n- Python",
+    "rater1": 48,
+    "rater2": 52,
+    "shortlist": false
+  },
+  {
+    "id": "placeholder-03",
+    "placeholder": true,
+    "cv": "Candidate [name]\n[email] | [phone]\nEXPERIENCE\nFrontend Engineer | [dates]\n- Engineered a JavaScript interface that improved task completion by 20%.\n- Designed accessible components for 4 products.\nSKILLS\nJavaScript, CSS\nEDUCATION\n[degree], [institution]",
+    "job_description": "Required:\n- JavaScript",
+    "rater1": 88,
+    "rater2": 85,
+    "shortlist": true
+  },
+  {
+    "id": "placeholder-04",
+    "placeholder": true,
+    "cv": "Candidate [name]\n[email]\nPROJECTS\nInventory tool\n- Built a small inventory tool.\nSKILLS\nJava\nEDUCATION\n[degree]",
+    "job_description": "Required:\n- Java\n- SQL\n- Docker",
+    "rater1": 55,
+    "rater2": 58,
+    "shortlist": false
+  },
+  {
+    "id": "placeholder-05",
+    "placeholder": true,
+    "cv": "Candidate [name]\n[email] | [phone] | linkedin.com/in/[profile]\nEXPERIENCE\nData Engineer | [dates]\n- Architected a real-time pipeline with scikit-learn that lowered latency by 100ms.\n- Automated validation for 1m records.\nSKILLS\nScikit Learn, Python, SQL\nEDUCATION\n[degree], [institution], [dates]",
+    "job_description": "Required:\n- sklearn\n- Python\nPreferred:\n- real time",
+    "rater1": 91,
+    "rater2": 90,
+    "shortlist": true
+  },
+  {
+    "id": "placeholder-06",
+    "placeholder": true,
+    "cv": "Candidate [name]\nEXPERIENCE\nDeveloper\n- Responsible for maintenance.\n- Involved in releases.\nSKILLS\nJavaScript, JavaScript\n",
+    "job_description": "Required:\n- JavaScript\n- React",
+    "rater1": 42,
+    "rater2": 45,
+    "shortlist": false
+  },
+  {
+    "id": "placeholder-07",
+    "placeholder": true,
+    "cv": "Candidate [name]\n[email] | [phone]\nEXPERIENCE\nSecurity Engineer | [dates]\n- Implemented monitoring that prevented 12 incidents.\n- Improved response time from 30 minutes to 5 minutes.\nSKILLS\nPython, Linux\nEDUCATION\n[degree], [institution]",
+    "job_description": "Required:\n- Linux\n- Python",
+    "rater1": 86,
+    "rater2": 84,
+    "shortlist": true
+  },
+  {
+    "id": "placeholder-08",
+    "placeholder": true,
+    "cv": "Candidate [name]\n[email]\nEDUCATION\n[degree], [institution]\nSKILLS\nCommunication, teamwork",
+    "job_description": "Required:\n- Python\n- SQL",
+    "rater1": 30,
+    "rater2": 34,
+    "shortlist": false
+  },
+  {
+    "id": "placeholder-09",
+    "placeholder": true,
+    "cv": "Candidate [name]\n[email] | [phone]\nEXPERIENCE\nOperations Lead | [dates]\n- Managed a workflow used by 200 users.\n- Collaborated with finance and engineering to reduce errors by 15%.\nSKILLS\nSQL, Excel\nEDUCATION\n[degree]",
+    "job_description": "Required:\n- SQL\nPreferred:\n- Excel",
+    "rater1": 79,
+    "rater2": 81,
+    "shortlist": true
+  },
+  {
+    "id": "placeholder-10",
+    "placeholder": true,
+    "cv": "Candidate [name]\n[email]\nEXPERIENCE\nIntern | [dates]\n- Assisted with testing.\n- Used Python for scripts.\nSKILLS\nPython\nEDUCATION\n[degree]",
+    "job_description": "Required:\n- Python\n- Docker",
+    "rater1": 51,
+    "rater2": 49,
+    "shortlist": false
+  }
+]

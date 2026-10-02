@@ -16,3 +16,24 @@ export const OUTCOME_PATTERNS = [
   /\b(?:reduced|increased|improved|optimized|accelerated|cut|saved|grew|raised|lowered|delivered|achieved|generated|enabled|prevented|eliminated|maintained)\b[^.!?;]*?(?=\s+\b(?:by|to|from|within|under|over|at least)\b|[.!?;]|$)/i,
   /\b(?:by|to|from|within|under|over|at least)\s+\d+(?:\.\d+)?\s*(?:%|ms|s|x|k|m|million|billion|percent|days?|hours?)\b/i,
 ];
+export const RULES_VERSION = '2026-10-recruiter-v1';
+export const SCORE_MODEL = {
+  roleMatch: 30,
+  experienceImpact: 25,
+  parseability: 15,
+  structure: 10,
+  skills: 8,
+  education: 5,
+  language: 7,
+  knockoutCaps: { one: 80, two: 65, threeOrMore: 50 },
+};
+export const SKILL_ALIASES = {
+  sklearn: 'scikit-learn',
+  'scikit learn': 'scikit-learn',
+  'scikit-learn': 'scikit-learn',
+  js: 'javascript',
+  javascript: 'javascript',
+  'real time': 'real-time',
+  'real-time': 'real-time',
+  realtime: 'real-time',
+};

@@ -6,6 +6,9 @@
     "dev": "wrangler dev",
     "test": "node test.mjs",
     "calibrate": "node calibrate.mjs",
+    "eval": "node eval/run-eval.mjs",
+    "eval:edits": "node eval/controlled-edits.mjs",
+    "eval:ablation": "node eval/ablation.mjs",
     "deploy": "wrangler deploy"
   },
   "devDependencies": {

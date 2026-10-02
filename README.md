@@ -32,7 +32,7 @@ The Upload PDF button reads selectable text from every page in the browser with 
 pdf.js parser in `public/vendor`. Page boundaries are preserved before section and bullet
 parsing. It keeps extracted text in the textarea and reports scanned/image-only, encrypted, or
 damaged PDFs clearly. The PDF itself never leaves the page.
-The PDF itself never leaves the page. Only the bullet text goes to Jev, and the skills check sends the CV text.
+Only the bullet text goes to Jev, and the skills check sends the CV text.
 Works best on single column CVs with real text. Scanned PDFs and two column layouts will not read well.
 
 ## Where things live
@@ -92,15 +92,24 @@ skills, green metrics, cyan outcome phrases, and yellow soft skills. Outcome phr
 separated from their numeric evidence where possible, so “reduced search time” and “by 40%”
 receive different labels rather than one blended score.
 
-The dashboard does not generate replacement resume text or show a generic fix list. This avoids
+The dashboard does not generate replacement resume text. This avoids
 labeling every bullet that lacks one optional checklist element as needing improvement. Users
-see the evidence-based annotations, category scores and quality checks instead. Jev is used for
-judgement calls only; it is not used to write resume text.
+see the evidence-based annotations, category scores, rule losses, penalties and quality checks
+instead. The optional semantic review uses Jev for judgement calls only; it is not used to
+write resume text.
 
-When a job description is provided, the headline becomes a job-aware checklist score:
-70% bullet quality and 30% average job-requirement match. Without a job description, the
-headline remains the general bullet checklist score. The job-match chart shows each requirement
-separately as matched, weak or missing.
+The recruiter-style score uses the centralized 100-point model in `public/config.js`:
+role/keyword match (30), experience and impact (25), parseability (15), section structure
+(10), skills evidence (8), education (5), and language quality (7). Missing required skills
+apply configurable knockout caps. Without a job description the result is labeled a generic
+role match with lower confidence. Every deterministic rule includes an id, category, status,
+points, possible points and a reason.
+
+The offline `eval/` dataset is deliberately placeholder-only. Run `npm run eval` for Spearman
+correlation, mean absolute error, shortlist agreement and inter-rater agreement. Run
+`npm run eval:edits` for controlled-edit direction checks and `npm run eval:ablation` to see
+the effect of removing each category's points. These scripts never call Jev and do not log CV
+content.
 
 ## Before you share the link
 
