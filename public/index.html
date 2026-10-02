@@ -1,5 +1,106 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>cvscorer</title><style>body{font:16px system-ui;max-width:850px;margin:40px auto;padding:0 20px}textarea{width:100%;min-height:260px}button{padding:10px 16px;margin:12px 0}pre{white-space:pre-wrap;background:#f3f3f3;padding:16px}</style></head>
-<body><h1>cvscorer</h1><p>Paste your CV text and score its bullets with Jev.</p><textarea id="cv" placeholder="Paste CV text here"></textarea><br><button id="score">Score CV</button><pre id="out"></pre><script type="module" src="./app.js"></script></body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="A transparent CV checklist scorer.">
+  <title>cvscorer dashboard</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">CV CHECKLIST</p>
+      <h1>cvscorer</h1>
+    </div>
+    <button id="theme" class="quiet-button" type="button" aria-label="Toggle dark mode">Dark mode</button>
+  </header>
+  <main>
+    <section class="hero dashboard-card" aria-labelledby="score-title">
+      <div class="gauge-wrap">
+        <svg id="overall-gauge" class="gauge" viewBox="0 0 120 120" role="img" aria-labelledby="score-title">
+          <circle class="gauge-track" cx="60" cy="60" r="50"></circle>
+          <circle id="gauge-value" class="gauge-value" cx="60" cy="60" r="50"></circle>
+          <text id="overall-score" x="60" y="58" text-anchor="middle">—</text>
+          <text x="60" y="76" text-anchor="middle" class="gauge-label">checklist</text>
+        </svg>
+      </div>
+      <div class="hero-copy">
+        <p class="eyebrow">REPORT</p>
+        <h2 id="score-title">Your CV checklist score</h2>
+        <p id="verdict">Paste a CV to see a transparent checklist, not an ATS prediction.</p>
+      </div>
+    </section>
+
+    <section class="dashboard-card input-card" aria-labelledby="input-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">1. INPUT</p><h2 id="input-title">Add your CV</h2></div>
+        <span id="filename" class="muted">No file selected</span>
+      </div>
+      <label id="drop-zone" class="drop-zone" for="pdf-input">
+        <strong>Drop a text PDF here</strong>
+        <span>or choose a file. Scanned/image-only PDFs cannot be read.</span>
+        <span class="choose-file-button" role="button" tabindex="0">Choose PDF</span>
+      </label>
+      <input id="pdf-input" class="file-input" type="file" accept="application/pdf,.pdf">
+      <p id="pdf-error" class="error" role="alert" hidden></p>
+      <label class="field-label" for="cv">Or paste CV text</label>
+      <textarea id="cv" placeholder="Paste the full CV here…"></textarea>
+      <label class="field-label" for="job-description">Job description (optional)</label>
+      <textarea id="job-description" class="short-textarea" placeholder="Paste requirements, must-have skills, and qualifications here…"></textarea>
+      <div class="actions">
+        <button id="score" class="primary-button" type="button">Score CV</button>
+        <button id="export-json" class="quiet-button" type="button">Export JSON</button>
+        <button id="print-report" class="quiet-button" type="button">Print report</button>
+        <span id="progress" class="muted" role="status"></span>
+      </div>
+    </section>
+
+    <section id="report" hidden aria-live="polite">
+      <div class="chart-grid">
+        <article class="dashboard-card chart-card">
+          <h2>Checklist categories</h2>
+          <p class="chart-help">What this shows: the share of checks present in each category.</p>
+          <div id="category-chart" class="chart"></div>
+          <p class="chart-help improve">How to improve: start with the lowest bar and add evidence to those bullets.</p>
+        </article>
+        <article class="dashboard-card chart-card">
+          <h2>Score by section</h2>
+          <p class="chart-help">What this shows: which CV sections contain scorable achievement bullets.</p>
+          <div id="section-chart" class="chart"></div>
+          <p class="chart-help improve">How to improve: keep education and skills factual; strengthen experience and project bullets.</p>
+        </article>
+      </div>
+      <div class="chart-grid">
+        <article class="dashboard-card chart-card">
+          <h2>Bullet score strip</h2>
+          <p class="chart-help">What this shows: the distribution of individual bullet checklist scores.</p>
+          <div id="bullet-chart" class="chart bullet-strip"></div>
+          <p class="chart-help improve">How to improve: select a low-scoring bullet below and follow its specific fix.</p>
+        </article>
+        <article class="dashboard-card chart-card">
+          <h2>Job match</h2>
+          <p class="chart-help">What this shows: job-description match is available when targets are provided.</p>
+          <div id="match-chart" class="chart empty-chart">Add a job description above.</div>
+          <p class="chart-help improve">How to improve: tailor evidence to the requirements you actually meet.</p>
+        </article>
+      </div>
+
+      <section class="dashboard-card" aria-labelledby="annotated-title">
+        <div class="section-heading"><div><p class="eyebrow">DETAIL</p><h2 id="annotated-title">Annotated CV</h2></div></div>
+        <p class="legend" aria-label="Annotation key">
+          <span class="tag verb">VERB</span><span class="tag skill">SKILL</span><span class="tag metric">NUMBER</span><span class="tag outcome">OUTCOME</span><span class="tag soft">SOFT SKILL</span>
+        </p>
+        <div id="annotated-cv"></div>
+      </section>
+
+      <section class="dashboard-card" aria-labelledby="quality-title">
+        <p class="eyebrow">QUALITY</p><h2 id="quality-title">Writing checks</h2>
+        <div id="quality-checks"></div>
+      </section>
+    </section>
+    <p class="honest-note"><strong>What this measures:</strong> a transparent checklist of action verbs, numbers, outcomes, skills and header details. <strong>What it does not measure:</strong> ATS ranking, hiring probability, or the quality of a person.</p>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
 </html>

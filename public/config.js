@@ -9,5 +9,10 @@ export const MAX_TARGETS = 15;
 export const YES = 0.6;
 export const UNSURE = 0.4;
 export const WEIGHTS = { verb: 0.2, metric: 0.25, impact: 0.3, skill: 0.15, header: 0.1 };
-export const ACTION_VERBS = ['built', 'led', 'ran', 'wrote', 'made', 'taught', 'won', 'worked', 'developed', 'designed', 'implemented', 'created', 'managed', 'improved', 'collaborated', 'optimized', 'automated', 'deployed', 'analyzed', 'trained', 'reduced', 'increased', 'delivered'];
+export const ACTION_VERBS = ['built', 'led', 'ran', 'wrote', 'made', 'taught', 'won', 'developed', 'designed', 'implemented', 'created', 'managed', 'improved', 'collaborated', 'optimized', 'automated', 'deployed', 'analyzed', 'trained', 'reduced', 'increased', 'delivered', 'diagnosed', 'fixed', 'architected', 'engineered'];
 export const SKILLS = ['python', 'pytorch', 'tensorflow', 'scikit-learn', 'pandas', 'numpy', 'sql', 'docker', 'fastapi', 'flask', 'langchain', 'rag', 'faiss', 'opencv', 'git', 'linux', 'matlab', 'plc', 'scada', 'eeg', 'machine learning', 'deep learning', 'nlp'];
+export const SOFT_SKILLS = ['collaborated', 'communicated', 'coordinated', 'mentored', 'presented', 'recommended', 'identified solutions', 'resolved', 'negotiated', 'facilitated', 'partnered', 'led cross-functional'];
+export const OUTCOME_PATTERNS = [
+  /\b(?:reduced|increased|improved|optimized|accelerated|cut|saved|grew|raised|lowered|delivered|achieved|generated|enabled|prevented|eliminated|maintained)\b[^.!?;]*?(?=\s+\b(?:by|to|from|within|under|over|at least)\b|[.!?;]|$)/i,
+  /\b(?:by|to|from|within|under|over|at least)\s+\d+(?:\.\d+)?\s*(?:%|ms|s|x|k|m|million|billion|percent|days?|hours?)\b/i,
+];

@@ -5,9 +5,13 @@
   "scripts": {
     "dev": "wrangler dev",
     "test": "node test.mjs",
+    "calibrate": "node calibrate.mjs",
     "deploy": "wrangler deploy"
   },
   "devDependencies": {
     "wrangler": "^4.40.0"
+  },
+  "dependencies": {
+    "pdfjs-dist": "^6.3.289"
   }
 }

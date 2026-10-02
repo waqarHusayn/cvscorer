@@ -8,9 +8,13 @@ export const linesToText = (lines) => {
   let previousIndent = 0;
   for (const { items } of lines) {
     const sorted = items.sort((a, b) => a.x - b.x);
-    const value = sorted.map((item) => item.str.replace(/[\uf0b7\u2022▪◦]/g, '•')).join(' ').replace(/\s+/g, ' ').trim();
+    const value = sorted.map((item) => item.str.replace(/[\uf0b7\u2022▪◦‣∙●○◉]/g, '•')).join(' ').replace(/\s+/g, ' ').trim();
     const indent = sorted[0]?.x || 0;
-    if (value.startsWith('•') || !output.length || !output.at(-1).startsWith('•') || indent <= previousIndent) output.push(value);
+    const startsBullet = /^[•]\s*/u.test(value);
+    const previous = output.at(-1) || '';
+    const lowerContinuation = /^[a-z(]/u.test(value);
+    const noPunctuation = !/[.!?:;,)}}\]]$/u.test(previous);
+    if (startsBullet || !output.length || !previous.startsWith('•') || indent <= previousIndent || (!lowerContinuation && !noPunctuation)) output.push(value);
     else output[output.length - 1] += ' ' + value;
     previousIndent = indent;
   }
