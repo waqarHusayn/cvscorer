@@ -28,9 +28,10 @@ A key only works on the host that issued it. A 401 usually means the key is goin
 
 ## PDF upload
 
-The Upload PDF button reads selectable text in the browser with the bundled pdf.js parser in
-`public/vendor`. It keeps extracted text in the textarea and reports scanned/image-only,
-encrypted, or damaged PDFs clearly. The PDF itself never leaves the page.
+The Upload PDF button reads selectable text from every page in the browser with the bundled
+pdf.js parser in `public/vendor`. Page boundaries are preserved before section and bullet
+parsing. It keeps extracted text in the textarea and reports scanned/image-only, encrypted, or
+damaged PDFs clearly. The PDF itself never leaves the page.
 The PDF itself never leaves the page. Only the bullet text goes to Jev, and the skills check sends the CV text.
 Works best on single column CVs with real text. Scanned PDFs and two column layouts will not read well.
 

@@ -20,3 +20,7 @@ export const linesToText = (lines) => {
   }
   return output.join('\n').replace(/\n•\s*/g, '\n• ');
 };
+export const pagesToText = (pages) => pages
+  .map((pageItems) => linesToText(itemsToLines([pageItems])))
+  .filter(Boolean)
+  .join('\n');

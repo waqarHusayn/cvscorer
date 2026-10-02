@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import * as r from './public/rules.js';
 import worker from './src/index.js';
-import { itemsToLines, linesToText } from './public/pdf.js';
+import { itemsToLines, linesToText, pagesToText } from './public/pdf.js';
 import fs from 'node:fs/promises';
 
 const bullets = r.extractBullets(`Name
@@ -99,6 +99,12 @@ const text = linesToText(itemsToLines([[
 ]]));
 assert.equal(text, 'Your Name\nEXPERIENCE\n\u2022 Built a RAG pipeline with Python that cut search time\n\u2022 Worked on ML projects\nSKILLS');
 assert.equal(r.extractBullets(text).length, 2);
+const pageOne = itemsToLines([[it('EXPERIENCE', 40, 740), it('• Built page one service', 40, 720)]]);
+const pageTwo = itemsToLines([[it('PROJECTS', 40, 740), it('• Delivered page two project', 40, 720)]]);
+assert.equal(pagesToText([
+  [it('EXPERIENCE', 40, 740), it('• Built page one service', 40, 720)],
+  [it('PROJECTS', 40, 740), it('• Delivered page two project', 40, 720)],
+]), 'EXPERIENCE\n• Built page one service\nPROJECTS\n• Delivered page two project');
 
 // Fake Jev
 let calls = [];

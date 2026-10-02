@@ -1,6 +1,6 @@
 import { bulletsFromCV, checkHeader, combineChecklistScore, extractRequirements, hasMetric, hasSkillWord, hasSoftSkill, outcomePhrase, parseCV, qualityChecks, skillEvaluation, startsWithActionVerb, weakOpener } from './rules.js';
 import { getDocument, GlobalWorkerOptions } from './vendor/pdf.min.mjs';
-import { itemsToLines, linesToText } from './pdf.js';
+import { pagesToText } from './pdf.js';
 
 const $ = (selector) => document.querySelector(selector);
 const cv = $('#cv');
@@ -155,7 +155,7 @@ async function loadPdf(file) {
         .filter((item) => typeof item.str === 'string' && item.str.trim())
         .map((item) => ({ str: item.str, x: item.transform?.[4] || 0, y: item.transform?.[5] || 0 })));
     }
-    const text = linesToText(itemsToLines(pages));
+    const text = pagesToText(pages);
     if (!text.trim()) throw new Error('This PDF has no selectable text. Scanned or image-only PDFs cannot be scored.');
     cv.value = text;
     $('#progress').textContent = `Loaded ${document.numPages} page${document.numPages === 1 ? '' : 's'} from ${file.name}.`;
