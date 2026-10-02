@@ -63,6 +63,8 @@ assert.ok(r.hasSoftSkill('Collaborated with product and engineering teams.'));
 assert.equal(r.outcomePhrase('Reduced search time by 40% through chunk reranking.'), 'Reduced search time');
 assert.ok(r.spansFor('Collaborated with teams and reduced latency by 40%').some((span) => span.t === 'soft'));
 assert.ok(r.spansFor('Collaborated with teams and reduced latency by 40%').some((span) => span.t === 'outcome'));
+assert.equal(r.combineChecklistScore(0.8, []), 0.8);
+assert.ok(Math.abs(r.combineChecklistScore(0.8, [0.2]) - 0.62) < 1e-9);
 assert.equal(r.weakOpener('Worked on machine learning projects'), 'worked on');
 assert.equal(r.weakOpener('Responsible for data cleaning'), 'responsible for');
 const appSource = await fs.readFile('./public/app.js', 'utf8');

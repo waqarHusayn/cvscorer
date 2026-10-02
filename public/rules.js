@@ -194,3 +194,10 @@ export const qualityChecks = (text) => {
     tense: { currentRolePresent: presentTense, oldRolePastCandidates: bullets.filter((bullet) => !presentTense && /\b(?:ing|s)\b/i.test(bullet)) },
   };
 };
+
+export const combineChecklistScore = (bulletScore, matchScores = []) => {
+  const validMatches = matchScores.filter((score) => typeof score === 'number');
+  if (bulletScore === null || !validMatches.length) return bulletScore;
+  const matchScore = validMatches.reduce((sum, score) => sum + score, 0) / validMatches.length;
+  return (bulletScore * 0.7) + (matchScore * 0.3);
+};

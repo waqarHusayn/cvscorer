@@ -1,4 +1,4 @@
-import { bulletsFromCV, checkHeader, extractRequirements, hasMetric, hasSkillWord, hasSoftSkill, outcomePhrase, parseCV, qualityChecks, skillEvaluation, startsWithActionVerb, weakOpener } from './rules.js';
+import { bulletsFromCV, checkHeader, combineChecklistScore, extractRequirements, hasMetric, hasSkillWord, hasSoftSkill, outcomePhrase, parseCV, qualityChecks, skillEvaluation, startsWithActionVerb, weakOpener } from './rules.js';
 import { getDocument, GlobalWorkerOptions } from './vendor/pdf.min.mjs';
 import { itemsToLines, linesToText } from './pdf.js';
 
@@ -40,13 +40,14 @@ function barChart(target, labels, values, max = 1) {
     }).join('') + '</svg>';
 }
 
-function renderCharts(results, parsed) {
+function renderCharts(results, parsed, matchResults = []) {
   const scores = results.map(numberScore).filter((value) => value !== null);
-  const average = scores.length ? scores.reduce((sum, value) => sum + value, 0) / scores.length : null;
+  const bulletAverage = scores.length ? scores.reduce((sum, value) => sum + value, 0) / scores.length : null;
+  const average = combineChecklistScore(bulletAverage, matchResults.map((item) => item.score));
   const categoryValues = [
     results.length ? results.reduce((sum, result) => sum + Number(startsWithActionVerb(result.bullet) || false), 0) / results.length : 0,
     results.length ? results.reduce((sum, result) => sum + Number(hasMetric(result.bullet) || false), 0) / results.length : 0,
-    average || 0, skillEvaluation(cv.value).repeatedInExperience.length ? 1 : 0, Object.values(checkHeader(cv.value)).filter(Boolean).length / 5,
+    bulletAverage || 0, skillEvaluation(cv.value).repeatedInExperience.length ? 1 : 0, Object.values(checkHeader(cv.value)).filter(Boolean).length / 5,
   ];
   barChart($('#category-chart'), ['Action verbs', 'Numbers', 'Outcomes', 'Skills', 'Header'], categoryValues);
   const sectionNames = ['experience', 'projects', 'education', 'skills'];
@@ -104,9 +105,15 @@ function renderMatch(results) {
 
 function renderReport(text, bullets, results, matchResults) {
   const parsed = parseCV(text);
-  const average = renderCharts(results, parsed);
+  const average = renderCharts(results, parsed, matchResults);
   setGauge(average);
-  $('#verdict').textContent = average === null ? 'No model scores returned; local checks are still shown below.' : average >= .7 ? 'Strong checklist coverage; refine the highlighted gaps.' : 'Several checklist items need evidence or clearer outcomes.';
+  $('#verdict').textContent = average === null
+    ? 'No model scores returned; local checks are still shown below.'
+    : matchResults.length
+      ? `Job-aware checklist score: ${Math.round(average * 100)}% (70% bullet quality, 30% job match).`
+      : average >= .7
+        ? 'Strong checklist coverage; add a job description for a tailored score.'
+        : 'Several checklist items need evidence or clearer outcomes.';
   renderAnnotated(parsed);
   renderQuality(text);
   renderMatch(matchResults);
@@ -206,7 +213,13 @@ $('#score').addEventListener('click', async () => {
       if (!matchResponse.ok) throw new Error(matchData.error || 'Job match request failed');
       matchResults = matchData.results || [];
     }
-    latestReport = { cv: text, bullets, results, requirements, matchResults, quality: qualityChecks(text), generatedAt: new Date().toISOString() };
+    const bulletScore = results.map(numberScore).filter((score) => score !== null);
+    const bulletAverage = bulletScore.length ? bulletScore.reduce((sum, score) => sum + score, 0) / bulletScore.length : null;
+    latestReport = {
+      cv: text, bullets, results, requirements, matchResults,
+      overallScore: combineChecklistScore(bulletAverage, matchResults.map((item) => item.score)),
+      quality: qualityChecks(text), generatedAt: new Date().toISOString(),
+    };
     renderReport(text, bullets, results, matchResults);
   } catch (error) {
     if (error.name !== 'AbortError') $('#progress').textContent = `Error: ${error.message}`;

@@ -23,7 +23,7 @@ function pickProvider(env) {
 
 async function jev(env, state, questions) {
   const provider = pickProvider(env);
-  const cacheKey = `https://cvscorer-cache/${provider.model}/${hashText(state)}`;
+  const cacheKey = `https://cvscorer-cache/${provider.model}/${hashText(`${state}\n${JSON.stringify(questions)}`)}`;
   const cache = globalThis.caches?.default;
   if (cache) {
     const cached = await cache.match(cacheKey);

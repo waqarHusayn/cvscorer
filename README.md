@@ -96,6 +96,11 @@ labeling every bullet that lacks one optional checklist element as needing impro
 see the evidence-based annotations, category scores and quality checks instead. Jev is used for
 judgement calls only; it is not used to write resume text.
 
+When a job description is provided, the headline becomes a job-aware checklist score:
+70% bullet quality and 30% average job-requirement match. Without a job description, the
+headline remains the general bullet checklist score. The job-match chart shows each requirement
+separately as matched, weak or missing.
+
 ## Before you share the link
 
 Anyone with the link can spend your TypeSafe quota. Add a Cloudflare rate limiting rule on `/api/*`,
