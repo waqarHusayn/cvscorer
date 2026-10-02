@@ -1,4 +1,4 @@
-# CV scorer
+# cvscorer
 
 A Cloudflare Worker that serves a page and two API routes. The page highlights a CV live.
 Plain code handles verbs, numbers, skill words and the header. Jev (TypeSafe) handles the judgement calls.

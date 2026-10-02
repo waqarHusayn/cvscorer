@@ -1,5 +1,5 @@
 {
-  "name": "cv-ats-score",
+  "name": "cvscorer",
   "private": true,
   "type": "module",
   "scripts": {
