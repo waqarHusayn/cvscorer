@@ -1,0 +1,16 @@
+# Use one of these. The Worker picks the first it finds, in this order.
+
+# 1. Experiential (api.experientiallabs.ai)
+EXPERIENTIAL_API_KEY=your-experiential-api-key
+# EXPERIENTIAL_MODEL=jev-latest
+
+# 2. OpenRouter
+# OPENROUTER_API_KEY=your-openrouter-key
+
+# 3. TypeSafe direct
+# TYPESAFE_API_KEY=your-typesafe-key
+
+# Or any other host that speaks the System One format (checked before all of the above)
+# JEV_API_URL=https://their-host/v1/systemone
+# JEV_API_KEY=your-key
+# JEV_MODEL=jev-1.13
